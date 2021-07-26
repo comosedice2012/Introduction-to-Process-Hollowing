@@ -1,1 +1,3 @@
 # Introduction-to-Process-Hollowing
+While earning my Cyber Operations degree from Dakota State University, https://dsu.edu/, I found my reverse engineering and malware analysis classes to be the most interesting and challenging. I decided it would be a fun exercise to try to create my own proof of concept malware using the same techniques that I came across in my studies. This was to be a learning opportunity to become more familiar with Windows APIs, the PE file stucture, and to gain more experience using various tools. I chose process hollowing because I found it to be a very clever way to deliver malicious content, and it would fill all the criteria I wanted to cover in this exercise.
+
