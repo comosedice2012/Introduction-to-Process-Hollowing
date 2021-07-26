@@ -10,4 +10,20 @@ Some of the addresses and register values may vary from groupings of screenshots
 First we need to create our target process that will be hollowed out. For this example “svchost.exe” will be the target process. Figure 1 shows the libraries used, along with a declaration of `ZwUnmapViewofSection()`, which will be used to hollow the process. Then, in Figure 2, the `main()` function begins by initializing two structures, `STARTUPINFOA()`, and `PROCESS_INFORMATION()`, which are used to help populate the `CreateProcessA()` API, which will be used to start our process. Notice that the process is created in the suspended state, which is essential. Detailed information can be found on MSDN for CreateProcessA. 
 https://docs.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessa
 
+![cLibraries](https://user-images.githubusercontent.com/69214982/127059867-9c5d0529-7faa-45a9-981a-daae8f1626c7.png)
 
+[Fig. 1]
+
+![main](https://user-images.githubusercontent.com/69214982/127059892-0a65c336-c27c-45cb-97fa-95949ca367fc.png)
+
+[Fig. 2]
+
+We can set a break-point in a debugger, just after the CreateProcessA function, and look in ProcessHacker to verify that our code launches an svchost.exe process.
+
+![IdaSvchostSpawn](https://user-images.githubusercontent.com/69214982/127059883-f5aef305-adef-4c78-8b67-e814b0b8c847.png)
+
+[Fig. 3]
+
+## Open Malicious Executable
+
+Now that we can spawn a target process, we need to open the malicious process. We can use `CreateFileA()`,
