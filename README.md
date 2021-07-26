@@ -111,8 +111,70 @@ In order to write our malicious file into the hollowed process, we will need to 
 
 [Fig. 16]
 
+![optHeaderSizeOfImage](https://user-images.githubusercontent.com/69214982/127059902-db244a6f-f9ea-4073-8aed-32910897cffa.png)
 
+[Fig. 17]
 
+Now we can use `VirtualAllocEx()` like before, however, this time we need to make sure we assign read/write/execute permissions to this memory. (Fig. 18)
 
+![virtualAllocEx](https://user-images.githubusercontent.com/69214982/127059918-b6e63d6f-4fea-489f-a3c1-9f344d93011a.png)
 
+[Fig. 18]
+
+## Write Malicious File Into Target
+
+Now it’s finally time to write the malicious file into memory. Figure 19 is a diagram of the PE file structure. As you can see, we first need to write the headers, then we can write the sections, which contain all of the executable data. 
+
+![PEFileStructure](https://user-images.githubusercontent.com/69214982/127059904-549bd5fd-3fd0-4185-a40c-b482c9b689e5.png)
+
+[Fig. 19]
+
+We use `WriteProcessMemory()` to write the headers to memory. Figure 21 shows the `IMAGE_NT_HEADER` structure, which contains the OptionalHeader. Figure 22 shows the `IMAGE_OPTIONAL_HEADER` structure which contains the `SizeOfHeaders`  value we need for WriteProcessMemory.
+
+![writeHeaders](https://user-images.githubusercontent.com/69214982/127059923-5f5c4edf-4951-4a97-973c-0230626aa3bd.png)
+
+[Fig. 20]
+
+![ImageNtHeader](https://user-images.githubusercontent.com/69214982/127059886-4e3f13e9-fda6-4309-9d03-2963c0bb570b.png)
+
+[Fig. 21]
+
+![ImageOptHeader](https://user-images.githubusercontent.com/69214982/127059889-eb5e7d4c-8b63-450a-a4f8-3f12bde8e3c1.png)
+
+[Fig. 22]
+
+Writing the sections is a little bit tricky. We can use a loop to copy each section. In order to do this, we need the `NumberOfSections`, which is located in the `IMAGE_FILE_HEADER` structure (Fig. 24), which is in the NT Headers. Now we need to find the first Section Header. If we add `e_lfanew` and the size of the headers to the base address, we will be in the first Section Header . Then we use `WriteProcessMemory()` again, getting our to and from addresses from the `IMAGE_SECTION_HEADER` structure (See Fig. 25 for details). Now we can loop through and write all of the sections by adding the size of each `IMAGE_SECTION_HEADER`. Figure 23 shows the corresponding code.
+
+![WriteSectionsToMem](https://user-images.githubusercontent.com/69214982/127059925-32d1a9ce-0fb3-4117-b8e8-57daa4b5d482.png)
+[Fig. 23]
+
+![imageFileHeader](https://user-images.githubusercontent.com/69214982/127059884-1c6816c1-0dca-4c91-910c-1002df93a774.png)
+
+[Fig. 24]
+
+![imageSectionHeader](https://user-images.githubusercontent.com/69214982/127059890-1fbdf09d-3590-4bd5-a85a-f96c888c03d5.png)
+
+[Fig. 25]
+
+Once the loop is complete, the injection of our malicious code should be complete. Again, we can try to verify this by looking at the memory of our suspended process after the loop completes. In Fig. 26 we can see that once again we have a PE file instead of the zeroed out memory we had after unmapping the process. This is what we are hoping to see. 
+
+![HxDPostSections](https://user-images.githubusercontent.com/69214982/127059879-c8f0a808-ccfd-4a96-8cff-bd4bad24ab22.png)
+
+[Fig. 26]
+
+All that is left to do is change the EAX value in the thread context to reflect the entry point of our newly injected process, which we can also get from the headers, and resume the thread (Fig. 27)
+
+![resumeThread](https://user-images.githubusercontent.com/69214982/127059909-c5f29b0b-5889-41ad-bd7a-1cf3d02c3c06.png)
+
+[Fig. 27]
+
+The final proof is to run the program in its entirety, and see what happens. As you can see in Fig. 28 the command line output tells our process has a PID of 2980. If we look in ProcessHacker we can see that our program did spawn an svchost.exe with a matching PID. However, what has been opened is our “malicious” program which is just a dialog box telling us it is malware. We have been successful in our endeavors!
+This is a very simple example of how process hollowing works. There are many different ways to accomplish this, but this is the method that worked for me. There was a lot of trial and error, but I did learn a lot on the way, which was really what this was all about. Of course, being successful in the end was also very rewarding! I hope this helps to understand how this process works. Happy hacking.
+
+![hollowSuccessful](https://user-images.githubusercontent.com/69214982/127059877-23ca0a61-c6c4-4b89-859f-0df07a3e7b99.png)
+
+[Fig. 28]
+
+## Post Note:
+It has been brought to my attention that I didn't show how to perform Image Base Relocation, via the .reloc section. I have seen examples of process hollowing using this and some that don't. I tested my code with my "malicious" pop-up as well as with calc.exe and iexplore.exe. Having had positive results with these I didn't proceed with rebasing. I may revisit this at a later time and see if I can successfully rebase the image to get a more complete resolution. For now, I am pretty satisfied with my small success!
 
