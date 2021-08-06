@@ -178,5 +178,5 @@ This is a very simple example of how process hollowing works. There are many dif
 [Fig. 28]
 
 ## Post Note:
-It has been brought to my attention that I didn't show how to perform Image Base Relocation, via the .reloc section. I have seen examples of process hollowing using this and some that don't. I tested my code with my "malicious" pop-up as well as with calc.exe and iexplore.exe. Having had positive results with these I didn't proceed with rebasing. I may revisit this at a later time and see if I can successfully rebase the image to get a more complete resolution. For now, I am pretty satisfied with my small success!
+I did not perform image base relocations to patch the relocation table. I tested my code with my "malicious" pop-up as well as with calc.exe and iexplore.exe. Having had positive results with these I didn't proceed with rebasing. I may revisit this at a later time and see if I can successfully rebase the image to get a more complete resolution. For now, I am pretty satisfied with my small success!
 
